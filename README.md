@@ -61,13 +61,7 @@ Simply deploy `VRM/index.html` or `project-cf/index.html` to any static host (Ve
 
 ---
 
-## 🔒 PRIVACY & PROTOCOLS
-This repository has been sterilized of all personal identifiers.
-- **Anonymized Roster**: Team members are referenced by callsigns (Member 1, Member 2...).
-- **Sanitized Links**: No external social tracking.
-- **Junk Removal**: `__MACOSX` and other artifacts incinerated.
 
----
 
 ## 🎓 ACADEMIC CONTEXT
 This project was developed as part of the **Master in Financial Markets & Risk Management** curriculum at **NEOMA Business School**. It demonstrates the application of advanced quantitative methods to real-world financial problems.

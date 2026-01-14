@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT VRM</title>
+    <link rel="icon" href="https://i.ibb.co/YK408yW/icon.png" type="image/png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Space+Mono:wght@400;700&family=Press+Start+2P&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* --- CONFIGURATION --- */
+        :root {
+            --bg-deep: #030304;
+            --bg-panel: rgba(20, 20, 25, 0.4);
+            --border-light: rgba(255, 255, 255, 0.08);
+
+            --primary-accent: #00ff9d;
+            /* VRM Green */
+            --secondary-accent: #5e6ad2;
+            /* Quant Blue */
+            --danger-accent: #ff2d55;
+            --gold-accent: #fbbf24;
+            --wine-accent: #9f1239;
+
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+
+            --font-ui: 'Inter', sans-serif;
+            --font-data: 'Space Mono', monospace;
+            --font-pixel: 'Press Start 2P', cursive;
+
+            --glass-blur: blur(20px);
+        }
+
+        /* BASE */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-accent);
+        }
+
+        ::selection {
+            background: rgba(0, 255, 157, 0.2);
+            color: var(--primary-accent);
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* --- HEADER --- */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.25rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(3, 3, 4, 0.8);
+            backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            flex-shrink: 0;
+            min-width: max-content;
+        }
+
+        .logo-img {
+            height: 40px;
+            /* Une hauteur fixe un peu plus grande */
+            width: auto;
+            /* Laisse la largeur s'adapter */
+            min-width: 40px;
+            /* Empêche le navigateur de réduire la largeur à 0 */
+            object-fit: contain;
+            /* CRUCIAL : Force l'image à garder ses proportions sans s'étirer */
+            flex-shrink: 0;
+            /* CRUCIAL : Interdit au menu flexible d'écraser l'image */
+            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.3));
+            margin-right: 10px;
+            /* Un peu d'espace avec le texte */
+        }
+
+        .logo-text {
+            font-family: var(--font-data);
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.05em;
+            display: flex;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .word-project,
+        .word-vrm {
+            transition: color 0.3s ease;
+        }
+
+        .word-project {
+            color: var(--text-main);
+        }
+
+        .word-vrm {
+            color: var(--primary-accent);
+        }
+
+        /* Hover Effect Logo */
+        .logo-container:hover .word-project {
+            color: var(--primary-accent);
+        }
+
+        .logo-container:hover .word-vrm {
+            color: var(--text-main);
+        }
+
+        /* --- NAVIGATION --- */
+        nav ul {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-family: var(--font-ui);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            color: var(--primary-accent);
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+        }
+
+        .nav-btn.active {
+            color: var(--primary-accent);
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+        }
+
+        /* --- PAGE STRUCTURE --- */
+        .page-view {
+            display: none;
+            padding-top: 100px;
+            min-height: 90vh;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .page-view.active-section {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-container {
+            padding: 0 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            min-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10%;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 8rem;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(to bottom, transparent 0%, var(--bg-deep) 90%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+            max-width: 800px;
+        }
+
+        .hero-content * {
+            pointer-events: auto;
+        }
+
+        h1 {
+            font-size: 5.5rem;
+            line-height: 0.95;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #ffffff 0%, #b0b0b0 50%, rgba(0, 255, 157, 0.4) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 3rem;
+            font-weight: 300;
+            border-left: 2px solid var(--primary-accent);
+            padding-left: 2rem;
+        }
+
+        .cta-btn {
+            padding: 1rem 2.5rem;
+            background: rgba(0, 255, 157, 0.05);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            color: var(--primary-accent);
+            font-family: var(--font-data);
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .cta-btn:hover {
+            background: var(--primary-accent);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.3);
+        }
+
+        /* --- VOLATILITY SURFACE VISUALIZER --- */
+        #volatility-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            mask-image: radial-gradient(circle at 60% 50%, black 20%, transparent 80%);
+        }
+
+        .surface-label {
+            position: absolute;
+            top: 20%;
+            right: 10%;
+            font-family: var(--font-data);
+            color: var(--primary-accent);
+            font-size: 0.7rem;
+            text-align: right;
+            opacity: 0.7;
+            z-index: 2;
+        }
+
+        /* --- HUD (STATS BAR) --- */
+        .data-strip {
+            position: absolute;
+            bottom: 4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 4rem;
+            align-items: center;
+            background: rgba(10, 10, 12, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.5rem 3rem;
+            z-index: 30;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+        }
+
+        .data-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .data-label {
+            font-family: var(--font-ui);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        .data-value {
+            font-family: var(--font-data);
+            font-size: 1.5rem;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .live-dot.green {
+            background: var(--primary-accent);
+            box-shadow: 0 0 8px var(--primary-accent);
+        }
+
+        .live-dot.red {
+            background: var(--danger-accent);
+            box-shadow: 0 0 8px var(--danger-accent);
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.4;
+            }
+        }
+
+        .val-green {
+            color: var(--primary-accent);
+        }
+
+        .val-red {
+            color: var(--danger-accent);
+        }
+
+        /* --- SECTION STYLES --- */
+        .glass-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 2.5rem;
+            backdrop-filter: blur(12px);
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 5;
+        }
+
+        .section-header {
+            font-family: var(--font-data);
+            font-size: 0.85rem;
+            color: var(--primary-accent);
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.1em;
+            opacity: 0.8;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .row-centered {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .text-side h3 {
+            font-family: var(--font-data);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        .text-side p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* --- ASSETS TICKER (DRAGGABLE & INFINITE) --- */
+        .ticker-section {
+            width: 100%;
+            padding: 0 0 3rem 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            margin-bottom: 2rem;
+            /* Empêcher la sélection de texte quand on drag */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            /* Masque progressif sur les côtés */
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+
+            /* MODIFICATION ICI : Remplacez 'grab' par 'default' */
+            cursor: default;
+        }
+
+        .ticker-wrap:active {
+            /* MODIFICATION ICI : Remplacez 'grabbing' par 'default' */
+            cursor: default;
+        }
+
+        .ticker-move {
+            display: flex;
+            width: max-content;
+            /* L'animation est gérée par JS pour permettre le Drag */
+            will-change: transform;
+        }
+
+        .ticker-item {
+            padding: 0 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 150px;
+            /* Empêche le drag natif de l'image par le navigateur */
+            pointer-events: none;
+        }
+
+        .ticker-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+
+            /* ÉTAT PAR DÉFAUT : GRIS/BLANC FANTÔME */
+            filter: grayscale(100%) brightness(2) opacity(0.5);
+
+            transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+
+            /* AJOUTEZ CETTE LIGNE ICI : */
+            cursor: default;
+        }
+
+        /* On réactive les pointer-events sur l'image pour détecter le survol, 
+           mais on gère le drag sur le parent (.ticker-wrap) */
+        .ticker-item img {
+            pointer-events: auto;
+        }
+
+        .ticker-logo:hover {
+            /* ÉTAT SURVOL : VERT VRM (#00ff9d) EXACT */
+            opacity: 1;
+            /* MODIFICATION: Suppression du scale (agrandissement) et du glow (drop-shadow) */
+            transform: none;
+            /* Ce filtre calcule transforme le blanc/gris en #00ff9d précis */
+            filter: brightness(0) saturate(100%) invert(86%) sepia(21%) saturate(986%) hue-rotate(87deg) brightness(60%) contrast(106%);
+        }
+
+        @keyframes ticker-scroll {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .ticker-wrap:hover .ticker-move {
+            animation-play-state: paused;
+        }
+
+        /* --- STRATEGY CARDS --- */
+        .cards-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .strategy-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.005) 100%);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 3rem;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strategy-card:hover {
+            border-color: var(--primary-accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .strategy-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .strategy-tag {
+            display: inline-block;
+            font-family: var(--font-data);
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .volatility-container {
+            margin-top: auto;
+        }
+
+        .vol-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .vol-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .vol-bar-fill {
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            transition: width 1.5s ease-out;
+        }
+
+        .sharpe-indicator {
+            position: absolute;
+            bottom: 25px;
+            right: 0;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+
+        .strategy-card:hover .sharpe-indicator,
+        .strategy-card.visible .sharpe-indicator {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- TERMINAL (EXECUTION) --- */
+        .terminal-window {
+            background: #080808;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 1.5rem;
+            height: 320px;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            position: relative;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%);
+        }
+
+        .terminal-feed {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 100%;
+            gap: 6px;
+        }
+
+        .log-entry {
+            padding-left: 10px;
+            border-left: 2px solid transparent;
+            animation: slideIn 0.3s;
+            opacity: 0.9;
+        }
+
+        .log-entry.buy {
+            border-left-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        .log-entry.sell {
+            border-left-color: var(--danger-accent);
+            color: var(--danger-accent);
+        }
+
+        .log-entry.info {
+            color: var(--text-muted);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* --- INFRA METRICS --- */
+        .infra-box {
+            margin-bottom: 1.5rem;
+        }
+
+        .infra-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-ui);
+            font-weight: 500;
+        }
+
+        .infra-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .infra-bar-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        /* --- CHARTS --- */
+        .chart-container-full {
+            width: 100%;
+            height: 450px;
+            margin-bottom: 2rem;
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .chart-container-full:hover {
+            border-color: var(--primary-accent);
+        }
+
+        .chart-frame {
+            width: 150%;
+            height: 135%;
+            border: none;
+            pointer-events: none;
+            transform: scale(0.74);
+            transform-origin: top left;
+        }
+
+        .zoom-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            color: white;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .chart-container-full:hover .zoom-icon {
+            opacity: 1;
+        }
+
+        /* --- TEAM CARDS --- */
+        .team-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-light);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .team-card:hover {
+            border-color: var(--primary-accent);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            background: #111;
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .role {
+            color: var(--primary-accent);
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+        }
+
+        /* --- EFFECTS & ANOMALIES --- */
+        #extra-velocity {
+            background-color: #000000 !important;
+        }
+
+        /* MEMBER 2 EFFECT */
+        .quant-singularity {
+            background: #000 !important;
+            border-color: #00ff9d !important;
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.6), inset 0 0 20px rgba(0, 255, 157, 0.2);
+            transform: scale(1.05);
+            z-index: 100;
+            overflow: visible !important;
+        }
+
+        .quant-singularity .avatar {
+            background: #00ff9d !important;
+            color: #000 !important;
+            box-shadow: 0 0 20px #00ff9d;
+            animation: pulse-quant 0.2s infinite alternate;
+        }
+
+        .quant-singularity h3 {
+            text-shadow: 2px 0 #ff00c1, -2px 0 #00fff9;
+            animation: glitch-skew 0.3s infinite linear alternate-reverse;
+        }
+
+        .math-particle {
+            position: absolute;
+            color: var(--primary-accent);
+            font-family: var(--font-data);
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            user-select: none;
+            z-index: 200;
+            text-shadow: 0 0 5px var(--primary-accent);
+            animation: float-up-fade 1s forwards cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        @keyframes float-up-fade {
+            0% {
+                transform: translateY(0) scale(0.5) rotate(0deg);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-20px) scale(1.2) rotate(45deg);
+            }
+
+            100% {
+                transform: translateY(-100px) scale(0) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse-quant {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 10px #00ff9d;
+            }
+
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 0 30px #00ff9d, 0 0 60px #00ff9d;
+            }
+        }
+
+        @keyframes glitch-skew {
+            0% {
+                transform: skew(0deg);
+            }
+
+            20% {
+                transform: skew(-10deg);
+            }
+
+            40% {
+                transform: skew(10deg);
+            }
+
+            60% {
+                transform: skew(-5deg);
+            }
+
+            80% {
+                transform: skew(5deg);
+            }
+
+            100% {
+                transform: skew(0deg);
+            }
+        }
+
+        @keyframes text-glitch {
+            0% {
+                text-shadow: 2px 2px 0px var(--danger-accent), -2px -2px 0px var(--primary-accent);
+            }
+
+            10% {
+                text-shadow: -2px -2px 0px var(--danger-accent), 2px 2px 0px var(--primary-accent);
+            }
+
+            20% {
+                text-shadow: 2px -2px 0px var(--danger-accent), -2px 2px 0px var(--primary-accent);
+            }
+
+            30% {
+                text-shadow: -2px 2px 0px var(--danger-accent), 2px -2px 0px var(--primary-accent);
+            }
+
+            40% {
+                text-shadow: none;
+            }
+
+            100% {
+                text-shadow: none;
+            }
+        }
+
+        /* --- OVERLAY SHARPE ANOMALY --- */
+        .sharpe-overlay-container {
+            position: absolute;
+            top: 60px;
+            left: 40px;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 250px;
+            height: 80px;
+            pointer-events: none;
+        }
+
+        .sharpe-value-text {
+            font-family: var(--font-data);
+            font-size: 1.1rem;
+            color: #ffffff;
+            z-index: 2;
+            position: relative;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--danger-accent);
+            animation: text-glitch 0.5s infinite;
+        }
+
+        /* EASTER EGGS */
+        .pixel-coin {
+            position: absolute;
+            font-family: var(--font-pixel);
+            color: var(--gold-accent);
+            text-shadow: 2px 2px 0 #000;
+            pointer-events: none;
+            z-index: 20;
+            animation: coinPop 0.8s steps(6) forwards;
+            font-size: 1.5rem;
+        }
+
+        @keyframes coinPop {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translateY(-60px) scale(1.5);
+            }
+
+            100% {
+                transform: translateY(-40px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .derivatives-active {
+            background: #050505 !important;
+            border: 2px solid var(--primary-accent) !important;
+            background-image: linear-gradient(transparent 90%, rgba(0, 255, 157, 0.1) 90%), linear-gradient(90deg, transparent 90%, rgba(255, 45, 85, 0.1) 90%) !important;
+            background-size: 15px 15px !important;
+        }
+
+        .derivatives-active::before {
+            content: "▲ CALL";
+            color: var(--primary-accent);
+            top: 10px;
+            left: 10px;
+            position: absolute;
+            font-family: var(--font-pixel);
+        }
+
+        .derivatives-active::after {
+            content: "▼ PUT";
+            color: var(--danger-accent);
+            bottom: 10px;
+            right: 10px;
+            position: absolute;
+            font-family: var(--font-pixel);
+        }
+
+        .beach-active {
+            background: linear-gradient(to bottom, #60a5fa 0%, #60a5fa 50%, #fcd34d 50%, #fcd34d 75%, #3b82f6 75%) !important;
+            border: 2px solid #fcd34d !important;
+        }
+
+        .beach-active h3,
+        .beach-active .role {
+            color: #000 !important;
+            font-family: var(--font-pixel) !important;
+            text-shadow: none !important;
+        }
+
+        .wine-active {
+            background: #4a0418 !important;
+            border: 2px solid var(--wine-accent) !important;
+        }
+
+        .wine-active h3 {
+            color: #fda4af !important;
+            font-family: var(--font-pixel) !important;
+        }
+
+        .pixel-grape {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: pop 0.6s steps(3) forwards;
+            pointer-events: none;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+            }
+
+            80% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .quantum-glitch {
+            animation: shake 0.1s steps(2) infinite;
+            background: #000 !important;
+            border: 2px solid #a855f7 !important;
+            z-index: 100;
+        }
+
+        .quantum-glitch h3 {
+            font-family: var(--font-pixel) !important;
+            color: #d8b4fe !important;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(1px, 1px);
+            }
+
+            100% {
+                transform: translate(-1px, -1px);
+            }
+        }
+
+        /* GLITCH BUTTON */
+        .glitch-btn-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 4rem;
+            padding-bottom: 2rem;
+        }
+
+        .glitch-btn-custom {
+            font-size: 18px;
+            font-family: var(--font-data);
+            color: var(--text-main);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            cursor: pointer;
+            background: transparent;
+            border: 1px solid var(--primary-accent);
+            padding: 20px 40px;
+            box-shadow: 0 0 10px rgba(0, 255, 157, 0.1);
+            transition: all 0.2s;
+            overflow: visible;
+        }
+
+        .glitch-btn-custom::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-deep);
+            color: var(--primary-accent);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid var(--primary-accent);
+            clip: rect(0, 0, 0, 0);
+        }
+
+        .glitch-btn-custom:hover {
+            background: var(--primary-accent);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.5);
+            text-shadow: none;
+        }
+
+        .glitch-btn-custom:hover::before {
+            animation: glitch-anim-btn 1.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-btn {
+            0% {
+                clip: rect(108px, 9999px, 86px, 0);
+                transform: translate(2px, 0) skew(0deg);
+            }
+
+            5% {
+                clip: rect(35px, 9999px, 2px, 0);
+                transform: translate(-2px, 0) skew(0deg);
+            }
+
+            10% {
+                clip: rect(6px, 9999px, 90px, 0);
+                transform: translate(1px, 0) skew(0deg);
+            }
+
+            /* ... abbreviated glitch keyframes ... */
+            100% {
+                clip: rect(60px, 9999px, 90px, 0);
+                transform: translate(2px, 0) skew(0deg);
+            }
+        }
+
+        .glitch-gif-deco {
+            position: absolute;
+            pointer-events: none;
+            mix-blend-mode: lighten;
+            opacity: 0.6;
+            z-index: 0;
+            filter: grayscale(100%) contrast(1.2) brightness(0.8);
+        }
+
+        /* TEXT GLITCH */
+        .glitch-text {
+            position: relative;
+            color: var(--primary-accent);
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            text-shadow: none !important;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-deep);
+        }
+
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -2px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -2px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim-2 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(40px, 9999px, 86px, 0);
+            }
+
+            100% {
+                clip: rect(84px, 9999px, 2px, 0);
+            }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% {
+                clip: rect(65px, 9999px, 100px, 0);
+            }
+
+            100% {
+                clip: rect(38px, 9999px, 49px, 0);
+            }
+        }
+
+        /* TIMELINE */
+        .timeline {
+            display: grid;
+            max-width: 60em;
+            margin: 4rem auto;
+        }
+
+        .timeline article {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 1rem;
+        }
+
+        .timeline h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            color: var(--primary-accent);
+            line-height: 1.4;
+        }
+
+        .timeline time {
+            font-family: var(--font-data);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            margin-left: 1rem;
+        }
+
+        .timeline p {
+            color: var(--text-main);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            width: 90%;
+            height: 85%;
+            background: #0a0a0a;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-data);
+            border: 1px solid transparent;
+            z-index: 100;
+        }
+
+        .close-modal:hover {
+            background: var(--text-main);
+            color: #000;
+        }
+
+        .modal iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: auto;
+            margin-top: 6rem;
+            padding: 2rem;
+            text-align: center;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            color: #0d5f3d;
+            font-weight: 700;
+            border-top: 1px solid rgba(0, 255, 157, 0.1);
+            width: 100%;
+        }
+
+        /* --- SCROLLING NEWS FEED STYLES --- */
+        .news-scroller-container {
+            height: 400px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        .news-track {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: scrollUp 40s linear infinite;
+        }
+
+        .news-track:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scrollUp {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-50%);
+            }
+        }
+
+        .news-item-row {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .news-item-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-light);
+            transform: translateX(5px);
+        }
+
+        .news-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--border-light);
+        }
+
+        .news-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .news-source-date {
+            font-family: var(--font-data);
+            font-size: 0.7rem;
+            color: var(--primary-accent);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .news-headline {
+            font-family: var(--font-ui);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .news-excerpt {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1024px) {
+
+            .cards-container,
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 1.5rem;
+            }
+
+            nav ul {
+                display: none;
+            }
+
+            .data-strip {
+                flex-wrap: wrap;
+                width: 90%;
+                gap: 2rem;
+                position: relative;
+                bottom: auto;
+                left: auto;
+                transform: none;
+                margin-top: 2rem;
+            }
+
+            .data-item {
+                width: 45%;
+            }
+
+            .hero {
+                padding-bottom: 4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chart-modal" class="modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="closeModal()">CLOSE ESC</div>
+            <iframe id="modal-iframe" src=""></iframe>
+        </div>
+    </div>
+
+    <header>
+        <a href="#" class="logo-container" onclick="showPage('home')">
+            <img src="https://i.ibb.co/YK408yW/icon.png" alt="VRM Logo" class="logo-img">
+            <div class="logo-text"><span class="word-project">PROJECT</span><span class="word-vrm">VRM</span></div>
+        </a>
+        <nav>
+            <ul>
+                <li><button class="nav-btn active" onclick="showPage('home')">Overview</button></li>
+                <li><button class="nav-btn" onclick="showPage('serenity')">Serenity</button></li>
+                <li><button class="nav-btn" onclick="showPage('velocity')">Velocity</button></li>
+                <li><button class="nav-btn" onclick="showPage('research')">Research</button></li>
+                <li><button class="nav-btn" onclick="showPage('team')">Team</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="home" class="page-view active-section">
+        <section class="hero">
+            <canvas id="volatility-canvas"></canvas>
+            <div class="surface-label">
+                IMPLIED VOLATILITY SURFACE<br>
+                MODEL: VRM-STOCHASTIC-V4
+            </div>
+
+            <div class="hero-content">
+                <h1>QUANTITATIVE<br>EDGE</h1>
+                <p>Proprietary algorithms engineered for alpha extraction. Merging institutional-grade risk models with
+                    decentralized finance composability.</p>
+                <a href="#strategies-anchor" class="cta-btn">Discover</a>
+            </div>
+
+            <div class="data-strip">
+                <div class="data-item">
+                    <div class="data-label">
+                        <div id="market-status-dot" class="live-dot green"></div> MARKET STATUS
+                    </div>
+                    <div class="data-value" id="market-status-text">LOADING...</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">ASSETS UNDER MANAGEMENT</div>
+                    <div class="data-value" id="aum-display">$0</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">NET RETURN (YTD)</div>
+                    <div class="data-value val-green" id="ret-display">+0.0%</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">24H VOLUME</div>
+                    <div class="data-value" id="vol-display">$0</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-container" style="margin-bottom: 4rem;">
+            <div class="section-header">// LIVE MARKET DATA</div>
+            <div class="glass-panel" style="padding: 2.5rem;">
+                <div class="grid-2">
+                    <div>
+                        <h4
+                            style="font-family:var(--font-data); margin-bottom:1rem; color:var(--text-muted); font-size:0.75rem;">
+                            >> ALGO EXECUTION STREAM</h4>
+                        <div class="terminal-window">
+                            <div class="terminal-feed" id="live-feed">
+                                <div class="log-entry info">[SYS] Connection established to NASDAQ Node...</div>
+                                <div class="log-entry info">[SYS] Models loaded: Velocity_v4, Serenity_v2</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+                        <h4
+                            style="font-family:var(--font-data); margin-bottom:1.5rem; color:var(--text-muted); font-size:0.75rem;">
+                            // INFRASTRUCTURE LATENCY</h4>
+                        <div class="infra-box">
+                            <div class="infra-label"><span>Broker Connection</span><span id="latency-val"
+                                    style="color:var(--primary-accent)">12ms</span></div>
+                            <div class="infra-bar-bg">
+                                <div class="infra-bar-fill" id="latency-bar"
+                                    style="width: 12%; background: var(--primary-accent);"></div>
+                            </div>
+                        </div>
+                        <div class="infra-box">
+                            <div class="infra-label"><span>EXECUTION SLIPPAGE</span><span id="slippage-val">0.02%</span>
+                            </div>
+                            <div class="infra-bar-bg">
+                                <div class="infra-bar-fill" id="slippage-bar" style="width: 2%; background: #fff;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="infra-box">
+                            <div class="infra-label"><span>Threads opened</span><span id="gas-val"
+                                    style="color:var(--secondary-accent)">18</span></div>
+                            <div class="infra-bar-bg">
+                                <div class="infra-bar-fill" id="gas-bar"
+                                    style="width: 30%; background: var(--secondary-accent);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="content-container">
+            <div class="section-header" style="color: var(--primary-accent);">// OUR MAIN ASSETS</div>
+
+            <div class="ticker-section">
+                <div class="ticker-wrap" id="ticker-container">
+                    <div class="ticker-move" id="ticker-track">
+                        <div class="ticker-item"><img
+                                src="https://www.logo.wine/a/logo/Microsoft_Store/Microsoft_Store-Logo.wine.svg"
+                                class="ticker-logo" alt="Microsoft"></div>
+                        <div class="ticker-item"><img
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Apple_logo_white.svg/1724px-Apple_logo_white.svg.png"
+                                class="ticker-logo" alt="Apple"></div>
+                        <div class="ticker-item"><img
+                                src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-white-icon.png"
+                                class="ticker-logo" alt="Google"></div>
+                        <div class="ticker-item"><img
+                                src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/amazon-white-icon.png"
+                                class="ticker-logo" alt="Amazon"></div>
+                        <div class="ticker-item"><img src="https://cdn.simpleicons.org/meta/white" class="ticker-logo"
+                                alt="Meta"></div>
+                        <div class="ticker-item"><img src="https://cdn.simpleicons.org/nvidia/white" class="ticker-logo"
+                                alt="Nvidia"></div>
+                        <div class="ticker-item"><img src="https://cdn.simpleicons.org/tesla/white" class="ticker-logo"
+                                alt="Tesla"></div>
+                        <div class="ticker-item"><img
+                                src="https://companieslogo.com/img/orig/jpmorgan-etf.D-db077258.png?t=1720244494"
+                                class="ticker-logo" alt="JPM Chase"></div>
+                        <div class="ticker-item"><img
+                                src="https://companieslogo.com/img/orig/WMT.D-f2207af1.png?t=1737085433"
+                                class="ticker-logo" alt="Walmart"></div>
+                        <div class="ticker-item"><img
+                                src="https://companieslogo.com/img/orig/JNJ.D-4d5f20e0.png?t=1720244492"
+                                class="ticker-logo" alt="JNJ"></div>
+
+                        <div class="ticker-item"><img
+                                src="https://www.logo.wine/a/logo/Microsoft_Store/Microsoft_Store-Logo.wine.svg"
+                                class="ticker-logo" alt="Microsoft"></div>
+                        <div class="ticker-item"><img
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Apple_logo_white.svg/1724px-Apple_logo_white.svg.png"
+                                class="ticker-logo" alt="Apple"></div>
+                        <div class="ticker-item"><img
+                                src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-white-icon.png"
+                                class="ticker-logo" alt="Google"></div>
+                        <div class="ticker-item"><img
+                                src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/amazon-white-icon.png"
+                                class="ticker-logo" alt="Amazon"></div>
+                        <div class="ticker-item"><img src="https://cdn.simpleicons.org/meta/white" class="ticker-logo"
+                                alt="Meta"></div>
+                        <div class="ticker-item"><img src="https://cdn.simpleicons.org/nvidia/white" class="ticker-logo"
+                                alt="Nvidia"></div>
+                        <div class="ticker-item"><img src="https://cdn.simpleicons.org/tesla/white" class="ticker-logo"
+                                alt="Tesla"></div>
+                        <div class="ticker-item"><img
+                                src="https://companieslogo.com/img/orig/jpmorgan-etf.D-db077258.png?t=1720244494"
+                                class="ticker-logo" alt="JPM Chase"></div>
+                        <div class="ticker-item"><img
+                                src="https://companieslogo.com/img/orig/WMT.D-f2207af1.png?t=1737085433"
+                                class="ticker-logo" alt="Walmart"></div>
+                        <div class="ticker-item"><img
+                                src="https://companieslogo.com/img/orig/JNJ.D-4d5f20e0.png?t=1720244492"
+                                class="ticker-logo" alt="JNJ"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-strategies" id="strategies-anchor">
+            <div class="content-container">
+                <div class="section-header">// INVESTMENT PROTOCOLS</div>
+                <div class="cards-container" id="cards-container">
+
+                    <div class="strategy-card serenity" onclick="showPage('serenity')">
+                        <h3>Serenity Vision</h3><span class="strategy-tag">MARKET NEUTRAL</span>
+                        <p style="color:var(--text-muted); margin-bottom: 2rem;">Delta-neutral arbitrage utilizing basis
+                            trading. Capital preservation focus.</p>
+
+                        <div class="volatility-container" style="position: relative;">
+                            <div class="sharpe-indicator" style="color: var(--primary-accent);">SHARPE: <span
+                                    id="serenity-sharpe-val">0.00</span></div>
+                            <div class="vol-label"><span>Volatility Index</span><span
+                                    style="color: var(--primary-accent)">LOW</span></div>
+                            <div class="vol-bar-bg">
+                                <div id="serenity-bar" class="vol-bar-fill" style="background:var(--primary-accent)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="strategy-card velocity" onclick="showPage('velocity')">
+                        <h3>Velocity Vision</h3><span class="strategy-tag">DIRECTIONAL MOMENTUM</span>
+                        <p style="color:var(--text-muted); margin-bottom: 2rem;">Aggressive algorithmic trading
+                            targeting high-beta assets. Driven by on-chain tracking.</p>
+
+                        <div class="volatility-container" style="position: relative;">
+                            <div class="sharpe-indicator" style="color: var(--danger-accent);">SHARPE: <span
+                                    id="velocity-sharpe-val">0.00</span></div>
+                            <div class="vol-label"><span>Volatility Index</span><span
+                                    style="color: var(--danger-accent)">HIGH</span></div>
+                            <div class="vol-bar-bg">
+                                <div id="velocity-bar" class="vol-bar-fill" style="background:var(--danger-accent)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="content-container" style="margin-top: 4rem; padding-bottom: 4rem;">
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>// MARKET INTEL</span>
+            </div>
+
+            <div class="news-scroller-container">
+                <div id="news-track" class="news-track">
+                    <div style="text-align:center; padding: 2rem; color:var(--text-muted);">
+                        [SYSTEM] INITIALIZING DATA STREAM...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <div id="velocity" class="page-view">
+        <div class="content-container">
+            <h2 class="page-title" style="color: var(--danger-accent)">VELOCITY VISION</h2>
+            <p
+                style="color: var(--text-muted); max-width: 800px; margin-bottom: 3rem; font-size: 1.1rem; line-height: 1.6;">
+                Designed for aggressive capital appreciation, the Velocity portfolio seeks to maximize alpha through
+                directional momentum strategies and high-beta exposure. By leveraging on-chain data and algorithmic
+                trend following, this strategy accepts higher volatility in exchange for superior long-term performance.
+            </p>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_base100.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_base100.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Normalized Performance (Base 100)</h3>
+                        <p>Comparative growth trajectory of constituent high-beta assets, normalized to 100. This view
+                            highlights the aggressive compounding effect of momentum strategies during trending markets.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Logarithmic Daily Returns</h3>
+                        <p>Daily percentage changes plotted on a logarithmic scale. This visualization helps identify
+                            volatility clustering and the frequency of significant positive outliers that drive the
+                            Velocity strategy's alpha.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_log_returns.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_log_returns.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_markowitz_sharpe.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_markowitz_sharpe.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Efficient Frontier Optimization</h3>
+                        <p>Targeting the upper right quadrant of the efficient frontier. We accept higher standard
+                            deviation to access portfolios with the highest theoretical expected returns.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Value at Risk (VaR 99% - 10 Days)</h3>
+                        <p>Probabilistic downside assessment. While the Velocity strategy chases upside, this metric
+                            quantifies the maximum expected loss in extreme market conditions to ensure solvency.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_var_10d_curve.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_var_10d_curve.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_volatility_chart.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_volatility_chart.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Implied vs. Realized Volatility</h3>
+                        <p>Tracking market energy. The Velocity algorithm thrives in high-volatility environments, using
+                            these spikes as signals for entry and exit points.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Return Distribution Pyramid</h3>
+                        <p>Visualizing the skewness of returns. Unlike neutral strategies, Velocity aims for a positive
+                            skew, accepting small frequent losses for the sake of large, infrequent gains.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_returns_pyramid.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_returns_pyramid.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_allocation_chart.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_allocation_chart.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Sector Weighting</h3>
+                        <p>Concentrated positions in high-momentum sectors. The portfolio dynamically overweights
+                            top-performing narratives (e.g., AI, L1s, Gaming) to maximize trend capture.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Drawdown & Recovery</h3>
+                        <p>Monitoring the depth and duration of declines. Key to the Velocity strategy is not avoiding
+                            drawdowns entirely, but minimizing the "time to recovery" after a dip.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/velocity_drawdown.html')">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/velocity_drawdown.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glitch-btn-container">
+                <button class="glitch-btn-custom" onclick="showPage('extra-velocity')"
+                    data-text="Extra Velocity Vision">
+                    Extra Velocity Vision
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="extra-velocity" class="page-view">
+        <img src="https://64.media.tumblr.com/55f57e7f662f882d127784a453d107ca/tumblr_msghlxjj0p1qbu2bao1_400.gif"
+            class="glitch-gif-deco" style="bottom: 10%; right: 5%; transform: rotate(15deg); width: 250px;">
+        <img src="https://64.media.tumblr.com/55f57e7f662f882d127784a453d107ca/tumblr_msghlxjj0p1qbu2bao1_400.gif"
+            class="glitch-gif-deco"
+            style="bottom: 15%; left: -2%; transform: rotate(-10deg); width: 300px; opacity: 0.4;">
+        <img src="https://64.media.tumblr.com/55f57e7f662f882d127784a453d107ca/tumblr_msghlxjj0p1qbu2bao1_400.gif"
+            class="glitch-gif-deco"
+            style="bottom: 25%; right: 15%; transform: rotate(5deg) scale(0.8); width: 150px; opacity: 0.3;">
+        <img src="https://64.media.tumblr.com/55f57e7f662f882d127784a453d107ca/tumblr_msghlxjj0p1qbu2bao1_400.gif"
+            class="glitch-gif-deco"
+            style="bottom: 5%; right: 25%; transform: rotate(-5deg) scale(0.5); width: 150px; opacity: 0.2;">
+
+        <div class="content-container">
+            <h2 class="page-title glitch-text" data-text="// CLASSIFIED: SHARPE RATIO ANOMALY">// CLASSIFIED: SHARPE
+                RATIO ANOMALY</h2>
+
+            <p
+                style="color: var(--text-main); font-family: var(--font-data); margin-bottom: 2rem; border-left: 2px solid var(--primary-accent); padding-left: 1rem; background: rgba(0,255,157,0.05); padding: 1.5rem; position: relative; z-index: 10;">
+                <span style="color:var(--primary-accent)">>> SYSTEM ALERT:</span> We identified a critical anomaly in
+                the historical data processing pipeline. The standard `dropna()` function applied to the 5-year return
+                dataset created an unintended window reduction. By exploiting this NumPy behavior, we successfully
+                condensed the timeframe from 60 months to mere days, mathematically causing the Sharpe Ratio to approach
+                infinity. This anomaly was leveraged for the +2.0 Bonus Alpha.
+            </p>
+
+            <div class="glass-panel" style="position: relative;">
+                <div class="sharpe-overlay-container">
+                </div>
+                <h4 style="font-family:var(--font-data); margin-bottom:1rem; color:var(--text-muted)">// THEORETICAL
+                    INFINITE SHARPE</h4>
+                <div class="chart-container-full" onclick="openModal('Files/extra_velocity_markowitz_sharpe.html')">
+                    <div class="zoom-icon">⛶</div>
+                    <iframe src="Files/extra_velocity_markowitz_sharpe.html" class="chart-frame"
+                        scrolling="no"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="serenity" class="page-view">
+        <div class="content-container">
+            <h2 class="page-title" style="color: var(--primary-accent)">SERENITY VISION</h2>
+            <p
+                style="color: var(--text-muted); max-width: 800px; margin-bottom: 3rem; font-size: 1.1rem; line-height: 1.6;">
+                Engineered for resilience, the Serenity portfolio targets consistent risk-adjusted returns through
+                statistical arbitrage and mean-reversion strategies. Our methodology prioritizes capital preservation by
+                strictly capping downside exposure, ensuring stability even during periods of high market turbulence.
+            </p>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_base100.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_base100.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Normalized Performance (Base 100)</h3>
+                        <p>A comparative analysis of the 25 constituent assets rebased to 100. This visualization allows
+                            for a direct performance comparison across diverse asset classes, neutralizing the effect of
+                            nominal price differences and highlighting relative growth trajectories.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Logarithmic Daily Returns</h3>
+                        <p>Visualization of day-to-day percentage changes using log returns. This chart is crucial for
+                            identifying volatility clusters, fat tails, and deviations from normality, providing a
+                            granular view of asset behavior beyond simple price action.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_log_returns.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_log_returns.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_markowitz_sharpe.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_markowitz_sharpe.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Markowitz-Sharpe Optimization</h3>
+                        <p>The Efficient Frontier analysis. By plotting thousands of portfolio combinations, we identify
+                            the optimal tangency portfolio that offers the highest expected return for a defined level
+                            of risk, maximizing the Sharpe Ratio.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Value at Risk (VaR 99% - 10 Days)</h3>
+                        <p>A probabilistic risk assessment assuming a $2 Billion investment. This chart models the
+                            maximum expected loss over a 10-day horizon at a 99% confidence level, serving as our
+                            primary stress-test metric for capital adequacy.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_var_10d_curve.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_var_10d_curve.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_volatility_chart.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_volatility_chart.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Rolling Volatility Spectrum</h3>
+                        <p>Analysis of rolling standard deviations across the portfolio. This metric helps in gauging
+                            changing market regimes, allowing the algorithm to dynamically adjust leverage based on the
+                            current volatility environment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Return Distribution Pyramid</h3>
+                        <p>A frequency distribution of portfolio returns. This "pyramid" visualization highlights
+                            skewness and kurtosis, confirming our strategy's ability to generate positive alpha while
+                            minimizing the frequency of extreme negative outliers.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_returns_pyramid.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_returns_pyramid.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_allocation_chart.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_allocation_chart.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                    <div class="text-side">
+                        <h3>Portfolio Weight Allocation</h3>
+                        <p>The strategic distribution of capital across the 25 assets. These weights are dynamically
+                            rebalanced to maintain optimal diversification, reducing idiosyncratic risk while capturing
+                            systemic sector growth.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="grid-2">
+                    <div class="text-side">
+                        <h3>Drawdown Analysis</h3>
+                        <p>Historical peak-to-trough decline measurement. This underwater chart is essential for
+                            understanding the psychological tolerance required for the strategy and verifying that
+                            drawdowns remain within acceptable risk limits.</p>
+                    </div>
+                    <div class="chart-container-full" onclick="openModal('Files/serenity_drawdown.html')"
+                        style="width: 100%;">
+                        <div class="zoom-icon">⛶</div>
+                        <iframe src="Files/serenity_drawdown.html" class="chart-frame" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="research" class="page-view">
+        <div class="content-container">
+            <h2 class="page-title">PROJECT RESEARCH & CHRONOLOGY</h2>
+            <section class='timeline'>
+                <article>
+                    <div class='timeline-header'>
+                        <h1>Phase 1: Project Launch & Strategic Foundations</h1><time>Nov 4, 2025</time>
+                    </div>
+                    <p>The project officially began with a structured launch phase focused on establishing clear
+                        objectives and aligning the team on expectations. We defined the overarching goal of blending
+                        traditional financial risk-modeling principles. During this stage, roles were assigned, ensuring
+                        smooth coordination. We also thoroughly reviewed the project requirements, clarified
+                        constraints, and developed a task roadmap with deadlines. This foundational work set the tone
+                        for a disciplined and methodical research process.</p>
+                </article>
+                <article>
+                    <div class='timeline-header'>
+                        <h1>Phase 2: Early Asset Exploration & Sharpe Ratio Framework</h1><time>Nov 12, 2025</time>
+                    </div>
+                    <p>We initiated the exploration of potential assets and began defining the importance of the Sharpe
+                        Ratio as the central performance metric of our research. Instead of immediately focusing on
+                        large universes, we first worked on understanding how asset selection impacts overall portfolio
+                        stability and risk-adjusted returns. This phase also involved setting up the initial Python
+                        environment, where we started experimenting with simple scripts to evaluate how different assets
+                        behaved historically. It marked the transition from theoretical planning to tangible
+                        quantitative investigation.</p>
+                </article>
+                <article>
+                    <div class='timeline-header'>
+                        <h1>Phase 3: Strategy Prototyping & Introduction to Knapsack Logic</h1><time>Nov 20, 2025</time>
+                    </div>
+                    <p>We shifted our attention to designing Python-based strategies aimed at achieving a high Sharpe
+                        Ratio. This phase led to the discovery of the Knapsack Algorithm, which opened new perspectives
+                        on how constraints and optimization mechanics could be applied to portfolio construction. We
+                        questioned the coherence between the Knapsack logic and Sharpe maximization, recognizing that
+                        maximizing value under weight limits did not directly translate to maximizing risk-adjusted
+                        return. This sparked a series of research efforts to test various optimization techniques and
+                        explore theoretical upper bounds for Sharpe Ratio improvements.</p>
+                </article>
+                <article>
+                    <div class='timeline-header'>
+                        <h1>Phase 4: High-Volume Simulations & Volatility Compression Techniques</h1><time>Dec 1,
+                            2025</time>
+                    </div>
+                    <p>This stage was marked by intense experimentation and significant technical discoveries.
+                        We downloaded over 60,000 stock tickers via yfinance to simulate complex combinations
+                        of 25 asset portfolios over five-year periods.
+                        To accelerate these large-scale searches, we also leveraged machine learning techniques
+                        capable of quickly identifying the most promising parameter regions.
+                        These efforts allowed us to achieve a Sharpe Ratio of around 7, strong, yet far from
+                        extraordinary.</p>
+                    <p style="margin-top: 1rem;">Multiple methods were tested, but the turning point came with the
+                        realization
+                        of how critical </code>dropna()</code> in the Pandas library truly is.
+                        By cleaning missing data, we uncovered the ability to drastically reduce volatility
+                        by using extremely short historical windows.
+                        This manipulation allowed Sharpe Ratios to skyrocket, reaching values above one million in
+                        certain extreme cases.
+                        Motivated by the two potential bonus points tied to Sharpe optimization, we spent days
+                        testing hypotheses, validating behaviors, and pushing the metric to its theoretical limits.</p>
+
+
+
+
+
+
+
+                </article>
+                <article>
+                    <div class='timeline-header'>
+                        <h1>Phase 5: Website Completion & Final Project Delivery</h1><time>Dec 7, 2025</time>
+                    </div>
+                    <p>With the research phase mostly concluded, we shifted our focus to the website. The team
+                        collaboratively explored ideas for layout, visualization, and the overall user experience. We
+                        integrated the research components, team contributions, and final results into a structured and
+                        polished interface. After refining the UI and ensuring a smooth presentation, the final
+                        deployment of the site took place. The project concluded with a sense of pride and satisfaction,
+                        reflecting the collective effort invested across research, development, and risk management.</p>
+                </article>
+            </section>
+        </div>
+    </div>
+
+    <div id="team" class="page-view">
+        <div class="content-container">
+            <h2 class="page-title">OUR TEAM</h2>
+            <div class="grid-3">
+                <div class="team-card" id="card-member1" onclick="triggerMember1Effect()">
+                    <div class="avatar">💱</div>
+                    <h3>Member 1</h3>
+                    <div class="role">Head of Trading FX</div>
+                </div>
+                <div class="team-card" id="card-member2" onclick="triggerMember2Effect()">
+                    <div class="avatar">🧠</div>
+                    <h3 id="name-member2" data-original="Member 2">Member 2</h3>
+                    <div class="role" id="role-member2">Head of Quant</div>
+                </div>
+                <div class="team-card" id="card-member3" onclick="triggerMember3Effect()">
+                    <div class="avatar">📈</div>
+                    <h3>Member 3</h3>
+                    <div class="role">Equity Derivatives</div>
+                </div>
+            </div>
+            <div class="row-centered">
+                <div class="team-card" id="card-member4" onclick="triggerMember4Effect()">
+                    <div class="avatar">🏦</div>
+                    <h3>Member 4</h3>
+                    <div class="role">Credit & Rates</div>
+                </div>
+                <div class="team-card" id="card-member5" onclick="triggerMember5Effect()">
+                    <div class="avatar">🛡️</div>
+                    <h3>Member 5</h3>
+                    <div class="role">Asset Manager</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>NEOMA 2025 - Valuation & Risk Models Project</footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="Files/metrics.js"></script>
+    <script src="Files/news_data.js"></script>
+
+    <script>
+        // --- 3D VOLATILITY SURFACE VISUALIZER ---
+        const init3D = () => {
+            const canvas = document.getElementById('volatility-canvas');
+            const scene = new THREE.Scene();
+
+            // Camera Setup
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10, 20);
+            camera.lookAt(0, 0, 0);
+
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Grid Logic
+            const size = 60;
+            const divisions = 50;
+            const geometry = new THREE.PlaneGeometry(size, size, divisions, divisions);
+
+            // Wireframe Material
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x00ff9d, // VRM Green
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+            plane.rotation.x = -Math.PI / 2;
+            scene.add(plane);
+
+            // Floating Data Points (The "Assets")
+            const pointsGeo = new THREE.BufferGeometry();
+            const pointsCount = 30;
+            const posArray = new Float32Array(pointsCount * 3);
+
+            for (let i = 0; i < pointsCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 40; // Spread
+            }
+            pointsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const pointsMat = new THREE.PointsMaterial({
+                size: 0.2,
+                color: 0x5e6ad2, // Secondary Blue
+                transparent: true,
+                opacity: 0.8
+            });
+            const pointsMesh = new THREE.Points(pointsGeo, pointsMat);
+            scene.add(pointsMesh);
+
+            // Animation Variables
+            let time = 0;
+            const originalPositions = geometry.attributes.position.array.slice();
+
+            // Interaction
+            let mouseX = 0;
+            let mouseY = 0;
+            window.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                time += 0.005;
+
+                // Animate Grid (Volatility Waves)
+                const positions = geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    const x = originalPositions[i];
+                    const y = originalPositions[i + 1]; // Z in PlaneGeometry
+
+                    // Complex wave function to simulate market volatility
+                    const z = Math.sin(x * 0.2 + time) * 2 + Math.cos(y * 0.2 + time) * 2
+                        + Math.sin((x + y) * 0.1 + time * 0.5) * 1.5;
+
+                    positions[i + 2] = z; // This is actually Z height in world space due to rotation
+                }
+                geometry.attributes.position.needsUpdate = true;
+
+                // Rotate Scene slightly based on mouse
+                plane.rotation.z = mouseX * 0.05;
+                plane.rotation.x = -Math.PI / 2 + mouseY * 0.05;
+
+                // Animate points
+                pointsMesh.rotation.y += 0.001;
+                pointsMesh.position.y = Math.sin(time) * 0.5;
+
+                renderer.render(scene, camera);
+            };
+
+            animate();
+
+            // Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+
+        // --- STANDARD JS LOGIC ---
+        const modal = document.getElementById("chart-modal");
+        const modalFrame = document.getElementById("modal-iframe");
+        function openModal(url) { modal.style.display = "flex"; modalFrame.src = url; }
+        function closeModal() { modal.style.display = "none"; modalFrame.src = ""; }
+        window.onclick = e => { if (e.target == modal) closeModal(); };
+        window.onkeydown = e => { if (e.key === "Escape") closeModal(); };
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active-section'));
+            document.getElementById(pageId).classList.add('active-section');
+
+            // Update Navigation Active State
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            // Find the button that calls showPage with this pageId
+            const activeBtn = document.querySelector(`button[onclick="showPage('${pageId}')"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            window.scrollTo(0, 0);
+        }
+
+        // Easter Egg Effects
+        let isGlitching = false;
+
+        function triggerMember2Effect() {
+            if (isGlitching) return;
+            isGlitching = true;
+
+            const card = document.getElementById('card-member2');
+            const nameEl = document.getElementById('name-member2');
+            const roleEl = document.getElementById('role-member2');
+            const avatarEl = card.querySelector('.avatar');
+
+            const originalName = nameEl.getAttribute('data-original');
+            const originalRole = roleEl.innerText;
+
+            card.classList.add('quant-singularity');
+
+            const chars = "∑∏∫√∞≈≠≤≥⊂⊃010101XYαβγδ";
+            let iterations = 0;
+
+            roleEl.innerText = ">> QUANTUM OVERLORD <<";
+            roleEl.style.color = "#fff";
+
+            const symbols = ["∑", "∫", "π", "∞", "√", "∂", "∆", "λ"];
+            const particleInterval = setInterval(() => {
+                const particle = document.createElement('span');
+                particle.classList.add('math-particle');
+                particle.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+
+                const rect = avatarEl.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
+
+                const leftPos = (rect.left - cardRect.left) + (rect.width / 2) + (Math.random() * 60 - 30);
+                const topPos = (rect.top - cardRect.top) + (rect.height / 2);
+
+                particle.style.left = leftPos + 'px';
+                particle.style.top = topPos + 'px';
+                particle.style.color = Math.random() > 0.5 ? '#00ff9d' : '#fff';
+
+                card.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }, 50);
+
+            const textInterval = setInterval(() => {
+                nameEl.innerText = originalName.split("").map((letter, index) => {
+                    if (index < iterations) return originalName[index];
+                    return chars[Math.floor(Math.random() * chars.length)];
+                }).join("");
+
+                if (iterations >= originalName.length) {
+                    clearInterval(textInterval);
+                }
+                iterations += 1 / 3;
+            }, 30);
+
+            setTimeout(() => {
+                clearInterval(particleInterval);
+                card.classList.remove('quant-singularity');
+                roleEl.innerText = originalRole;
+                roleEl.style.color = "";
+                nameEl.innerText = originalName;
+                isGlitching = false;
+            }, 1500);
+        }
+
+        function triggerMember3Effect() { document.getElementById('card-member3').classList.toggle('derivatives-active'); }
+        function triggerMember5Effect() { document.getElementById('card-member5').classList.toggle('beach-active'); }
+        function triggerMember4Effect() {
+            const card = document.getElementById('card-member4'); card.classList.add('wine-active');
+            for (let i = 0; i < 5; i++) {
+                const grape = document.createElement('span'); grape.classList.add('pixel-grape'); grape.innerText = "🍇";
+                grape.style.left = Math.random() * 80 + 10 + '%'; grape.style.top = Math.random() * 80 + 10 + '%';
+                grape.style.animationDelay = i * 0.1 + 's'; card.appendChild(grape); setTimeout(() => grape.remove(), 700);
+            }
+            setTimeout(() => card.classList.remove('wine-active'), 1000);
+        }
+        function triggerMember1Effect() {
+            const card = document.getElementById('card-member1');
+            for (let i = 0; i < 8; i++) {
+                const coin = document.createElement('span'); coin.classList.add('pixel-coin'); coin.innerText = "$";
+                coin.style.left = Math.random() * 70 + 15 + '%'; coin.style.top = '50%';
+                coin.style.setProperty('--tx', (Math.random() * 100 - 50) + 'px'); coin.style.animationDelay = i * 0.05 + 's';
+                card.appendChild(coin); setTimeout(() => coin.remove(), 850);
+            }
+        }
+
+        // --- TICKER & ANIMATION LOGIC ---
+        const volEl = document.getElementById('vol-display');
+        const aumEl = document.getElementById('aum-display');
+        const retEl = document.getElementById('ret-display');
+
+        const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+        let currentVolume = 320500000;
+        let currentAUM = 2158402564;
+        let currentRet = 68.4;
+
+        const animateOnLoad = (el, target, duration, isCurrency = true, isPercent = false) => {
+            let start = 0;
+            let startTime = null;
+
+            const step = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const ease = 1 - Math.pow(2, -10 * progress);
+                const currentVal = start + (target - start) * ease;
+
+                if (isCurrency) {
+                    el.innerText = currencyFormatter.format(Math.floor(currentVal));
+                } else if (isPercent) {
+                    el.innerText = "+" + currentVal.toFixed(1) + "%";
+                }
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    if (isCurrency) el.innerText = currencyFormatter.format(target);
+                    else if (isPercent) el.innerText = "+" + target.toFixed(1) + "%";
+                }
+            };
+            window.requestAnimationFrame(step);
+        };
+
+        const animateFluctuation = (el, start, end, duration) => {
+            let startTime = null;
+            const step = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const ease = 1 - Math.pow(2, -10 * progress);
+                el.innerText = currencyFormatter.format(Math.floor(start + (end - start) * ease));
+                if (progress < 1) window.requestAnimationFrame(step); else el.innerText = currencyFormatter.format(end);
+            };
+            window.requestAnimationFrame(step);
+        };
+
+        // --- SHARPE GAUGE ANIMATION (INTERSECTION OBSERVER) ---
+        const animateValue = (obj, start, end, duration) => {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = (progress * (end - start) + start).toFixed(2);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        const observerOptions = { threshold: 0.5 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const card = entry.target;
+                    card.classList.add('visible');
+
+                    if (typeof generated_metrics !== 'undefined') {
+                        // SERENITY LOGIC
+                        const sVal = generated_metrics.serenity_sharpe || 2.5;
+                        const sBar = document.getElementById('serenity-bar');
+                        const sText = document.getElementById('serenity-sharpe-val');
+
+                        const sWidth = Math.min((sVal / 3.5) * 100, 100);
+                        sBar.style.width = sWidth + '%';
+                        animateValue(sText, 0, sVal, 1500);
+
+                        // VELOCITY LOGIC
+                        const vVal = generated_metrics.velocity_sharpe || 3.1;
+                        const vBar = document.getElementById('velocity-bar');
+                        const vText = document.getElementById('velocity-sharpe-val');
+
+                        const vWidth = Math.min((vVal / 3.5) * 100, 100);
+                        vBar.style.width = vWidth + '%';
+                        animateValue(vText, 0, vVal, 1500);
+                    }
+                    observer.unobserve(card);
+                }
+            });
+        }, observerOptions);
+
+        // --- MARKET STATUS LOGIC (PARIS TIME) ---
+        function updateMarketStatus() {
+            const statusText = document.getElementById('market-status-text');
+            const statusDot = document.getElementById('market-status-dot');
+            const now = new Date();
+            const parisTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+            const day = parisTime.getDay();
+            const hour = parisTime.getHours();
+            let isOpen = true;
+            if (day === 5 && hour >= 23) isOpen = false;
+            if (day === 6) isOpen = false;
+            if (day === 0 && hour < 23) isOpen = false;
+            if (isOpen) {
+                statusText.innerText = "OPEN";
+                statusText.className = "data-value val-green";
+                statusDot.className = "live-dot green";
+            } else {
+                statusText.innerText = "CLOSED";
+                statusText.className = "data-value val-red";
+                statusDot.className = "live-dot red";
+            }
+        }
+        setInterval(updateMarketStatus, 1000);
+
+        // --- TERMINAL LOGIC ---
+        const feedContainer = document.getElementById('live-feed');
+        const assets = ['AAPL', 'NVDA', 'MSFT', 'AMZN', 'GOOGL'];
+        const actions = ['BID', 'ASK', 'HEDGE'];
+
+        function addLogEntry() {
+            const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const asset = assets[Math.floor(Math.random() * assets.length)];
+            const action = actions[Math.floor(Math.random() * actions.length)];
+            const price = (Math.random() * 300 + 100).toFixed(2);
+            const size = (Math.floor(Math.random() * 50) + 1);
+            let type = 'info', text = '';
+
+            if (Math.random() > 0.8) text = `[SYS] Portfolio Rebalance...`;
+            else {
+                if (action === 'BID') { type = 'buy'; text = `[ORD] BID ${size} ${asset} @ ${price} EUR`; }
+                else if (action === 'ASK') { type = 'sell'; text = `[ORD] ASK ${size} ${asset} @ ${price} EUR`; }
+                else { type = 'info'; text = `[RSK] Delta Neutralizing ${asset}`; }
+            }
+            const div = document.createElement('div'); div.className = `log-entry ${type}`;
+            div.innerHTML = `<span style="opacity:0.4; font-size:0.75rem; margin-right:8px;">${now}</span> ${text}`;
+            feedContainer.appendChild(div);
+            if (feedContainer.children.length > 18) feedContainer.removeChild(feedContainer.children[0]);
+        }
+        setInterval(addLogEntry, 1500);
+
+        // --- SCROLLING NEWS RENDER LOGIC ---
+        function renderNews() {
+            const track = document.getElementById('news-track');
+
+            // 1. Check Data
+            if (typeof EXTERNAL_NEWS_DATA === 'undefined' || EXTERNAL_NEWS_DATA.length === 0) {
+                track.innerHTML = `
+                    <div style="text-align:center; padding:4rem; border:1px dashed var(--danger-accent); color:var(--danger-accent); font-family:var(--font-data);">
+                        [ERR] FEED OFFLINE<br>
+                        <span style="font-size:0.7rem; opacity:0.7">Run main.py to fetch data</span>
+                    </div>`;
+                return;
+            }
+
+            // 2. Build HTML
+            let itemsHTML = '';
+            const newsLimit = EXTERNAL_NEWS_DATA.slice(0, 10);
+
+            newsLimit.forEach(item => {
+                const imgUrl = item.thumbnail || 'https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=200&auto=format&fit=crop';
+                const dateObj = new Date(item.pubDate);
+                const dateStr = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                itemsHTML += `
+                    <a href="${item.link}" target="_blank" class="news-item-row">
+                        <img src="${imgUrl}" alt="thumb" class="news-thumb">
+                        <div class="news-info">
+                            <div class="news-source-date">${item.publisher} • ${dateStr} ${timeStr}</div>
+                            <h3 class="news-headline">${item.title}</h3>
+                            <p class="news-excerpt">${item.summary}</p>
+                        </div>
+                    </a>
+                `;
+            });
+
+            // 3. Duplicate for Infinite Scroll Effect
+            track.innerHTML = itemsHTML + itemsHTML;
+        }
+
+
+
+        // Init
+        document.addEventListener("DOMContentLoaded", () => {
+            init3D();
+            updateMarketStatus();
+            renderNews();
+
+            // Observe Strategy Cards
+            const cards = document.getElementById('cards-container');
+            if (cards) observer.observe(cards);
+
+            // Load Animations
+            animateOnLoad(aumEl, currentAUM, 3000, true, false);
+            animateOnLoad(volEl, currentVolume, 3000, true, false);
+            animateOnLoad(retEl, currentRet, 3000, false, true);
+
+            // Fluctuations
+            setTimeout(() => {
+                setInterval(() => { const newVol = currentVolume + Math.random() * 1000000 + 100000; animateFluctuation(volEl, currentVolume, newVol, 1500); currentVolume = newVol; }, 5000);
+                setInterval(() => { const fluctuation = (Math.random() - 0.45) * 20000; const newAUM = currentAUM + fluctuation; animateFluctuation(aumEl, currentAUM, newAUM, 2500); currentAUM = newAUM; }, 8000);
+            }, 3500);
+
+            // Infra fake data
+            setInterval(() => {
+                const lat = Math.floor(Math.random() * 20 + 10);
+                document.getElementById('latency-val').innerText = lat + 'ms'; document.getElementById('latency-bar').style.width = lat + '%';
+                const gas = Math.floor(Math.random() * 15 + 10);
+                document.getElementById('gas-val').innerText = gas; document.getElementById('gas-bar').style.width = (gas * 2) + '%';
+            }, 2500);
+        });
+        // --- LOGIQUE TICKER INFINI & DRAGGABLE ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const track = document.getElementById('ticker-track');
+            const container = document.getElementById('ticker-container');
+
+            // Vitesse de base (pixels par frame)
+            let speed = 0.5;
+            let position = 0;
+            let isDragging = false;
+            let startX = 0;
+            let lastX = 0;
+            let animationId;
+
+            // Calcul de la largeur de la moitié du contenu (une boucle)
+            // On suppose que la liste est dupliquée exactement en deux moitiés égales
+            const calculateWidth = () => {
+                return track.scrollWidth / 2;
+            };
+            let halfWidth = calculateWidth();
+
+            // Fonction d'animation principale
+            const animate = () => {
+                if (!isDragging) {
+                    position -= speed;
+                }
+
+                // Gestion de l'infini
+                // Si on est allé trop loin à gauche
+                if (position <= -halfWidth) {
+                    position += halfWidth;
+                }
+                // Si on est allé trop loin à droite (en draggant)
+                if (position > 0) {
+                    position -= halfWidth;
+                }
+
+                track.style.transform = `translateX(${position}px)`;
+                animationId = requestAnimationFrame(animate);
+            };
+
+            // Démarrer l'animation
+            animationId = requestAnimationFrame(animate);
+
+            // --- GESTION DU DRAG (SOURIS & TOUCH) ---
+
+            const startDrag = (x) => {
+                isDragging = true;
+                startX = x;
+                lastX = position;
+                container.style.cursor = 'grabbing';
+                // On augmente légèrement la vitesse lors du relâchement pour l'inertie (optionnel, ici simple)
+            };
+
+            const moveDrag = (x) => {
+                if (!isDragging) return;
+                const diff = x - startX;
+                position = lastX + diff;
+            };
+
+            const endDrag = () => {
+                isDragging = false;
+                container.style.cursor = 'grab';
+            };
+
+            // Souris
+            container.addEventListener('mousedown', (e) => {
+                // Empêche le comportement par défaut (sélection texte)
+                e.preventDefault();
+                startDrag(e.clientX);
+            });
+            window.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+            window.addEventListener('mouseup', endDrag);
+
+            // Touch (Mobile)
+            container.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX));
+            window.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX));
+            window.addEventListener('touchend', endDrag);
+
+            // Recalculer si la fenêtre change de taille
+            window.addEventListener('resize', () => {
+                halfWidth = calculateWidth();
+            });
+        });
+
+    </script>
+</body>
+
+</html>

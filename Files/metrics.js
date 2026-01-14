@@ -1,0 +1,1 @@
+const generated_metrics = {'serenity_sharpe': 0.7145391632650735, 'velocity_sharpe': 7.4470557639806305, 'extra_velocity_sharpe': 1586.7051168311243};

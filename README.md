@@ -69,8 +69,13 @@ This repository has been sterilized of all personal identifiers.
 
 ---
 
+## 🎓 ACADEMIC CONTEXT
+This project was developed as part of the **Master in Financial Markets & Risk Management** curriculum at **NEOMA Business School**. It demonstrates the application of advanced quantitative methods to real-world financial problems.
+
+---
+
 <div align="center">
 
-**[ ⚡ POWERED BY ANTIGRAVITY AGENTS ⚡ ]**
+**[ ⚡ QUANTITATIVE FINANCE RESEARCH ⚡ ]**
 
 </div>
